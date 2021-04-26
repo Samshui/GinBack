@@ -2,6 +2,7 @@ package main
 
 import (
 	"Gin/common"
+	"Gin/middleware"
 	"github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/spf13/viper"
@@ -16,6 +17,7 @@ func main() {
 	defer db.Close() // 延迟关闭
 
 	r := gin.Default()
+	r.Use(middleware.Cors())
 	r = CollectRouter(r)
 
 	port := viper.GetString("server.port")

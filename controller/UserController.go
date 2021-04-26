@@ -17,12 +17,12 @@ import (
 /** routers **/
 
 func Register(c *gin.Context) {
-
 	// 获取数据库
 	DB := common.GetDB()
 
 	// 获取参数
 	name := c.PostForm("name")
+	studentID := c.PostForm("studentID")
 	telephone := c.PostForm("telephone")
 	password := c.PostForm("password")
 
@@ -38,16 +38,21 @@ func Register(c *gin.Context) {
 		return
 	}
 
+	if len(studentID) != 8 {
+		response.Response(c, http.StatusUnprocessableEntity, 422, nil, "学号位数错误")
+		return
+	}
+
 	if len(name) == 0 {
 		// 姓名为空，生成随机初始名称
 		name = RandomString(10)
 	}
 
-	log.Println(name, telephone, password)
+	log.Println(name, studentID, telephone, password)
 
-	// 查找数据库，手机号是否已经存在
-	if IsTelephoneExist(DB, telephone) {
-		response.Response(c, http.StatusUnprocessableEntity, 422, nil, "手机号重复存在")
+	// 查找数据库，手机号/学号是否已经存在
+	if IsTelephoneExist(DB, telephone) || IsStudentIDExist(DB, studentID) {
+		response.Response(c, http.StatusUnprocessableEntity, 422, nil, "手机号/学号重复存在")
 		return
 	}
 
@@ -59,6 +64,7 @@ func Register(c *gin.Context) {
 	newUser := model.User{
 		Model:     gorm.Model{},
 		Name:      name,
+		StudentID: studentID,
 		Telephone: telephone,
 		Password:  string(encryptedPassword),
 	}
@@ -70,8 +76,11 @@ func Register(c *gin.Context) {
 
 func Login(c *gin.Context) {
 	// 获取数据（手机号 + 密码）
-	telephone := c.PostForm("telephone")
-	password := c.PostForm("password")
+	//telephone := c.PostForm("telephone")
+	//password := c.PostForm("password")
+
+	telephone := c.Query("telephone")
+	password := c.Query("password")
 
 	// 数据验证
 	if len(telephone) != 11 {
@@ -91,14 +100,15 @@ func Login(c *gin.Context) {
 	db.Where("telephone = ?", telephone).First(&user)
 
 	if user.ID == 0 {
-		response.Response(c, http.StatusUnprocessableEntity, 422, nil, "用户不存在")
+		response.Response(c, http.StatusOK, 200, gin.H{"data": -1}, "用户不存在")
 		return
 	}
 
 	// 用户密码判断（加密判断）
 	err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 	if err != nil {
-		response.Response(c, http.StatusBadRequest, 400, nil, "用户密码错误")
+		response.Response(c, http.StatusOK, 200, gin.H{"data": -2}, "用户密码错误")
+		return
 	}
 
 	// 密码通过（发放token）
@@ -115,7 +125,6 @@ func Login(c *gin.Context) {
 func Info(c *gin.Context) {
 	user, _ := c.Get("user")
 
-	// c.JSON(http.StatusOK, gin.H{"code": 200, "data": gin.H{"user": dto.ToUserDto(user.(model.User))}})
 	response.Success(c, gin.H{"user": dto.ToUserDto(user.(model.User))}, "")
 }
 
@@ -125,6 +134,16 @@ func Info(c *gin.Context) {
 func IsTelephoneExist(db *gorm.DB, telephone string) bool {
 	var user model.User
 	db.Where("telephone = ?", telephone).First(&user)
+	if user.ID != 0 {
+		return true
+	}
+	return false
+}
+
+// IsStudentIDExist 查询学号
+func IsStudentIDExist(db *gorm.DB, studentID string) bool {
+	var user model.User
+	db.Where("studentID = ?", studentID).First(&user)
 	if user.ID != 0 {
 		return true
 	}
