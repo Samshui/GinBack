@@ -3,9 +3,9 @@ server:
 
 datasource:
   driverName: mysql
-  host: localhost
+  host: rm-2zeh286g9l5sp7i76yo.mysql.rds.aliyuncs.com
   port: 3306
-  database: GinBack
-  username: root
-  password: yhm012710
+  database: hangguanli
+  username: myroot
+  password: HangGuanLiRoot00
   charset: utf8

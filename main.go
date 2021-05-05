@@ -13,8 +13,11 @@ func main() {
 	// 初始化读取配置
 	InitConfig()
 
+	// 数据库
 	db := common.InitDB()
 	defer db.Close() // 延迟关闭
+
+	gin.ForceConsoleColor()
 
 	r := gin.Default()
 	r.Use(middleware.Cors())

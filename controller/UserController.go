@@ -21,10 +21,10 @@ func Register(c *gin.Context) {
 	DB := common.GetDB()
 
 	// 获取参数
-	name := c.PostForm("name")
-	studentID := c.PostForm("studentID")
-	telephone := c.PostForm("telephone")
-	password := c.PostForm("password")
+	name := c.Query("name")
+	studentID := c.Query("studentID")
+	telephone := c.Query("telephone")
+	password := c.Query("password")
 
 	// 检查数据
 	if len(telephone) != 11 {
@@ -71,14 +71,11 @@ func Register(c *gin.Context) {
 	DB.Create(&newUser)
 
 	// 返回数据
-	response.Success(c, nil, "注册成功！")
+	response.Success(c, gin.H{"data": 1, "user": dto.ToUserDto(newUser)}, "注册成功")
 }
 
 func Login(c *gin.Context) {
 	// 获取数据（手机号 + 密码）
-	//telephone := c.PostForm("telephone")
-	//password := c.PostForm("password")
-
 	telephone := c.Query("telephone")
 	password := c.Query("password")
 
@@ -128,12 +125,52 @@ func Info(c *gin.Context) {
 	response.Success(c, gin.H{"user": dto.ToUserDto(user.(model.User))}, "")
 }
 
+func ChangeTelephone(c *gin.Context) {
+	newTelephone := c.Query("newTelephone")
+	oldTelephone := c.Query("oldTelephone")
+
+	db := common.GetDB()
+
+	// 判断是否存在使用新手机号的用户
+	var user model.User
+	db.Where("telephone = ?", newTelephone).First(&user)
+	if user.ID != 0 {
+		response.Response(c, http.StatusUnprocessableEntity, 422, gin.H{"data": -3}, "手机号已经被使用")
+		return
+	}
+
+	db.Model(&model.User{}).
+		Where("telephone = ?", oldTelephone).
+		Update("telephone", newTelephone)
+
+	// 返回
+	response.Success(c, nil, "修改成功")
+}
+
+func TelephoneIsExisted(c *gin.Context) {
+	telephone := c.Query("telephone")
+
+	db := common.GetDB()
+
+	// 判断是否存在使用新手机号的用户
+	var user model.User
+	db.Where("telephone = ?", telephone).First(&user)
+	if user.ID != 0 {
+		response.Response(c, http.StatusOK, 200, gin.H{"data": -4}, "手机号已经被使用")
+		return
+	} else {
+		response.Response(c, http.StatusOK, 200, gin.H{"data": -5}, "手机号未被使用")
+		return
+	}
+}
+
 /** 工具方法 **/
 
 // IsTelephoneExist 查询手机号
 func IsTelephoneExist(db *gorm.DB, telephone string) bool {
 	var user model.User
 	db.Where("telephone = ?", telephone).First(&user)
+
 	if user.ID != 0 {
 		return true
 	}

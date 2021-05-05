@@ -7,9 +7,22 @@ import (
 )
 
 func CollectRouter(r *gin.Engine) *gin.Engine {
-	r.POST("/api/auth/register", controller.Register)
-	r.POST("/api/auth/login", controller.Login)
-	r.GET("/api/auth/info", middleware.AuthMiddleware(), controller.Info)
+	// User
+	r.POST("/api/user/register", controller.Register)
+	r.POST("/api/user/login", controller.Login)
+	r.GET("/api/user/info", middleware.AuthMiddleware(), controller.Info)
+	r.POST("/api/user/changeTelephone", controller.ChangeTelephone)
+	r.POST("/api/user/telephoneIsExist", controller.TelephoneIsExisted)
+
+	// Experiment
+	r.POST("/api/experiment/add", controller.AddExperiment)
+	r.POST("/api/experiment/delete", controller.DeleteExperiment)
+	r.POST("/api/experiment/get", controller.GetExperimentByLabel)
+
+	// Record
+	r.POST("/api/record/add", controller.AddRecord)
+	r.POST("/api/record/delete", controller.DeleteRecord)
+	r.POST("/api/record/getAll", controller.GetAllRecordByUserID)
 
 	return r
 }

@@ -1,15 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="DataSourceManagerImpl" format="xml" multifile-model="true">
-    <data-source source="LOCAL" name="GinBack@localhost" uuid="1af45bf4-5368-41dc-988f-5b54d5e8e4ef">
+    <data-source source="LOCAL" name="hangguanli@rm-2zeh286g9l5sp7i76yo.mysql.rds.aliyuncs.com" uuid="532aa9df-d95f-44ae-b3e4-d9404cc52a3c">
       <driver-ref>mysql.8</driver-ref>
       <synchronize>true</synchronize>
       <jdbc-driver>com.mysql.cj.jdbc.Driver</jdbc-driver>
-      <jdbc-url>jdbc:mysql://localhost:3306/GinBack</jdbc-url>
+      <jdbc-url>jdbc:mysql://rm-2zeh286g9l5sp7i76yo.mysql.rds.aliyuncs.com:3306/hangguanli</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
-      <driver-properties>
-        <property name="serverTimezone" value="UTC" />
-      </driver-properties>
     </data-source>
   </component>
 </project>

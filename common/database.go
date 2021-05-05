@@ -33,8 +33,10 @@ func InitDB() *gorm.DB {
 		panic("数据库连接失败，错误信息：" + err.Error())
 	}
 
-	// 自动创建User表
+	// 自动创建表
 	db.AutoMigrate(&model.User{})
+	db.AutoMigrate(&model.Experiment{})
+	db.AutoMigrate(&model.Record{})
 
 	DB = db
 	return db
