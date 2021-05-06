@@ -23,6 +23,7 @@ func AddExperiment(c *gin.Context) {
 	EM, _ := strconv.Atoi(c.Query("EM"))
 	EN, _ := strconv.Atoi(c.Query("EN"))
 	EE, _ := strconv.Atoi(c.Query("EE"))
+	Site, _ := strconv.Atoi(c.Query("site"))
 
 	log.Printf("EM:%d, EN:%d, EE:%d\n", EM, EN, EE)
 
@@ -42,6 +43,7 @@ func AddExperiment(c *gin.Context) {
 		TimeMorning: EM,
 		TimeNoon:    EN,
 		TimeEvening: EE,
+		SiteSize:    Site,
 	}
 
 	DB.Create(&newExperiment)
@@ -85,7 +87,7 @@ func DeleteExperiment(c *gin.Context) {
 func GetExperimentByLabel(c *gin.Context) {
 	DB := common.GetDB()
 
-	eLabel, _ := strconv.Atoi(c.Query("eLabel"))
+	eLabel, _ := strconv.Atoi(c.Query("ELabel"))
 	log.Printf("elabel:%d", eLabel)
 
 	var experiments []model.Experiment
@@ -97,4 +99,19 @@ func GetExperimentByLabel(c *gin.Context) {
 	}
 
 	response.Success(c, gin.H{"data": 1, "experiments": experiments}, "获取到实验")
+}
+
+// GetAllExperiments 获取所有实验
+func GetAllExperiments(c *gin.Context) {
+	DB := common.GetDB()
+
+	var allExperiments []model.Experiment
+	DB.Order("eid").Find(&allExperiments)
+
+	if len(allExperiments) == 0 {
+		response.Success(c, gin.H{"data": -1}, "没有实验存在")
+		return
+	}
+
+	response.Success(c, gin.H{"data": 1, "all": allExperiments}, "")
 }

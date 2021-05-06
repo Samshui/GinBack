@@ -86,14 +86,14 @@ func DeleteRecord(c *gin.Context) {
 	response.Success(c, gin.H{"data": 1}, "取消成功")
 }
 
-// GetAllRecordByUserID 获取当前用户选择的所有实验记录
-func GetAllRecordByUserID(c *gin.Context) {
+// GetAllRecordByEID 获取当前实验的所有记录
+func GetAllRecordByEID(c *gin.Context) {
 	DB := common.GetDB()
 
-	UID := c.Query("UID")
+	EID := c.Query("EID")
 
 	var records []model.Record
-	DB.Where("user_id = ?", UID).Find(&records)
+	DB.Where("experiment_id = ?", EID).Find(&records)
 
 	if len(records) == 0 {
 		response.Success(c, gin.H{"data": -1}, "未搜索到相关记录")
@@ -101,4 +101,41 @@ func GetAllRecordByUserID(c *gin.Context) {
 	}
 
 	response.Success(c, gin.H{"data": 1, "records": records}, "搜索成功")
+}
+
+// GetAllRecordsByStudentID 按StudentID查找所有的记录
+func GetAllRecordsByStudentID(c *gin.Context) {
+	DB := common.GetDB()
+
+	StudentId := c.Query("UID")
+	var records []model.Record
+	DB.Table("records").Where("user_id = ?", StudentId).Find(&records)
+
+	response.Success(c, gin.H{"data": records}, "")
+}
+
+// GetAllSiteSelected 获取当前实验所有已选的位置
+func GetAllSiteSelected(c *gin.Context) {
+	DB := common.GetDB()
+
+	Eid := c.Query("EID")
+	Date := c.Query("Date")
+	Time, _ := strconv.Atoi(c.Query("Time"))
+
+	var records []model.Record
+	DB.Table("records").
+		Where("experiment_id = ? AND date = ? AND time = ?", Eid, Date, Time).
+		Find(&records)
+
+	if len(records) == 0 {
+		response.Success(c, gin.H{"data": -1}, "当前实验无选择记录")
+		return
+	}
+
+	sitesSelected := make([]int, len(records))
+	for i := 0; i < len(records); i++ {
+		sitesSelected[i] = records[i].Site
+	}
+
+	response.Success(c, gin.H{"data": records, "array": sitesSelected}, "")
 }
