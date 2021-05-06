@@ -28,20 +28,37 @@ func AddRecord(c *gin.Context) {
 		return
 	}
 
-	if IsRepeated(EID, UID, date, time, site) {
-		response.Success(c, gin.H{"data": -1}, "已经选过")
+	// 判断该用户是否在当天当时段选择了实验
+	var testRecords []model.Record
+	DB.Table("records").
+		Where("user_id = ? AND date = ? AND time = ?", UID, date, time).
+		Find(&testRecords)
+
+	if len(testRecords) != 0 {
+		response.Success(c, gin.H{"data": -3, "records": testRecords}, "当前时段您存在其他实验")
 		return
 	}
 
+	if IsSelected(EID, UID, date, time, site) == 1 {
+		response.Success(c, gin.H{"data": -1}, "已经选过")
+		return
+	} else if IsSelected(EID, UID, date, time, site) == 2 {
+		response.Success(c, gin.H{"data": -2}, "已经被占")
+		return
+	}
+
+	var theExperiment model.Experiment
+	DB.Table("experiments").Where("eid = ?", EID).First(&theExperiment)
+
 	newRecord := model.Record{
-		Model:              gorm.Model{},
-		SelectedExperiment: model.Experiment{},
-		Selector:           model.User{},
-		Date:               date,
-		Site:               site,
-		Time:               time,
-		ExperimentID:       EID,
-		UserID:             UID,
+		Model:          gorm.Model{},
+		Date:           date,
+		Site:           site,
+		Time:           time,
+		ExperimentID:   EID,
+		UserID:         UID,
+		ExperimentName: theExperiment.Name,
+		Lab:            theExperiment.Lab,
 	}
 
 	DB.Create(&newRecord)
@@ -50,17 +67,22 @@ func AddRecord(c *gin.Context) {
 	response.Success(c, gin.H{"data": 1, "record": dto.ToRecordDto(newRecord)}, "新增记录成功")
 }
 
-// IsRepeated 是否重复
-func IsRepeated(eid string, uid string, date string, time int, site int) bool {
+// IsSelected 已经被选过
+func IsSelected(eid string, uid string, date string, time int, site int) int {
 	DB := common.GetDB()
 
 	var record model.Record
-	DB.Where("experiment_id = ? AND user_id = ? AND date = ? AND time = ? AND site = ?", eid, uid, date, time, site).First(&record)
+	DB.Where("experiment_id = ? AND date = ? AND time = ? AND site = ?", eid, date, time, site).First(&record)
 
 	if record.ID != 0 {
-		return true
+		if record.UserID == uid {
+			return 1
+		} else {
+			return 2
+		}
+	} else {
+		return 0
 	}
-	return false
 }
 
 // DeleteRecord 取消选实验记录
@@ -74,7 +96,7 @@ func DeleteRecord(c *gin.Context) {
 	site, _ := strconv.Atoi(c.Query("site"))
 
 	// 存在该记录
-	if !IsRepeated(EID, UID, date, time, site) {
+	if IsSelected(EID, UID, date, time, site) == 0 {
 		response.Success(c, gin.H{"data": -1}, "不存在该记录")
 		return
 	}

@@ -83,7 +83,7 @@ func DeleteExperiment(c *gin.Context) {
 	response.Success(c, gin.H{"data": -1}, "无法删除不存在的数据")
 }
 
-// GetExperimentByLabel 获取实验
+// GetExperimentByLabel 获取专栏实验
 func GetExperimentByLabel(c *gin.Context) {
 	DB := common.GetDB()
 
@@ -114,4 +114,21 @@ func GetAllExperiments(c *gin.Context) {
 	}
 
 	response.Success(c, gin.H{"data": 1, "all": allExperiments}, "")
+}
+
+// GetExperimentByEID 获取EID的实验
+func GetExperimentByEID(c *gin.Context) {
+	DB := common.GetDB()
+
+	EID := c.Query("EID")
+
+	var experiment model.Experiment
+	DB.Table("experiments").Where("eid = ?", EID).Find(&experiment)
+
+	if experiment.ID == 0 {
+		response.Success(c, gin.H{"data": -1}, "不存在该实验")
+		return
+	}
+
+	response.Success(c, gin.H{"data": experiment}, "获取成功")
 }

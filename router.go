@@ -17,8 +17,9 @@ func CollectRouter(r *gin.Engine) *gin.Engine {
 	// Experiment
 	r.POST("/api/experiment/add", controller.AddExperiment)
 	r.POST("/api/experiment/delete", controller.DeleteExperiment)
-	r.POST("/api/experiment/get", controller.GetExperimentByLabel)
+	r.POST("/api/experiment/getByLabel", controller.GetExperimentByLabel)
 	r.POST("/api/experiment/all", controller.GetAllExperiments)
+	r.POST("/api/experiment/getByEID", controller.GetExperimentByEID)
 
 	// Record
 	r.POST("/api/record/add", controller.AddRecord)
